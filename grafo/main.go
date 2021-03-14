@@ -13,7 +13,7 @@ type Graph struct {
 // GraphNode : representa um nó do grafo
 type GraphNode struct {
 	id    string
-	edges map[string]int
+	edges map[string]int //*GraphNode
 }
 
 // New : retorna uma nova instancia de um grafo
@@ -23,39 +23,60 @@ func New() *Graph {
 	}
 }
 
+type Borda struct {
+	items []*GraphNode
+	top   int
+}
+
+
+type Explorados struct{
+	items []*GraphNode
+}
+
 // AddNode : adiciona um novo nó no grafo
-func (g *Graph) AddNode(nomeNo string) (id string) {
-	id = nomeNo
-	g.nodes = append(g.nodes, &GraphNode{
-		id:    id,
+func (g *Graph) AddNode(nomeNo string) (node *GraphNode) {
+	
+	node = &GraphNode{
+		id:    nomeNo,
 		edges: make(map[string]int),
-	})
+	}
+	g.nodes = append(g.nodes, node)
 	return
 }
 
 // AddEdge : adiciona uma aresta no grafo junto com seu peso
-func (g *Graph) AddEdge(n1, n2 string, w int) {
+func (g *Graph) AddEdge(n1, n2 *GraphNode, w int) {
 	for _, node := range g.nodes{
-		if node.id == n1{
-			node.edges[n2] = w
+		if node.id == n1.id{
+			node.edges[n2.id] = w
 		}
 	}
 }
 
 // Neighbors : retorna os vizinhos do nó de entrada
-func (g *Graph) Neighbors(id string) []string {
+func (g *Graph) Neighbors(id *GraphNode) []*GraphNode {
 	neighbors := []string{}
+	nodes := []*GraphNode{}
+
 	for _, node := range g.nodes {
-		for edge := range node.edges {
-			if node.id == id {
-				neighbors = append(neighbors, edge)
+		if node.id == id.id {
+			for edge := range node.edges {
+				//if edge == id {
+					neighbors = append(neighbors, edge)
+				//}
 			}
-			if edge == id {
-				neighbors = append(neighbors, node.id)
+			break
+		}
+	}
+
+	for _, i := range neighbors {
+		for _, j := range g.nodes {
+			if i == j.id {
+				nodes = append(nodes, j)
 			}
 		}
 	}
-	return neighbors
+	return nodes
 }
 
 // Nodes : retorna a lista dos nomes de cada nó do grafo
@@ -78,6 +99,125 @@ func (g *Graph) Edges() [][3]string {
 	}
 	return edges
 }
+
+// Init - Borda initialization
+func Init(size int) *Borda {
+	s := &Borda{
+		items: make([]*GraphNode, size),
+		top: -1,
+	}
+	return s
+}
+
+// IsInitialized - checks Borda initialized or not
+func (s *Borda) IsInitialized() bool {
+	if cap(s.items) == 0 {
+		return true
+	}
+	return false
+}
+
+// IsFull - checks if Borda is full
+func (s *Borda) IsFull() bool {
+	if (cap(s.items) - 1) == s.top {
+		return true
+	}
+	return false
+}
+
+// IsEmpty - checks if Borda is empty
+func (s *Borda) IsEmpty() bool {
+	if -1 == s.top {
+		return true
+	}
+	return false
+}
+
+// Push - pushes element into Borda
+func (s *Borda) Push(element *GraphNode) {
+	s.top++
+	if s.top == -1 {
+		s.items[0] = element
+	} else {
+		s.items[s.top] = element
+	}
+}
+
+// Print - prints element from Borda
+func (s *Borda) Print() {
+	for i, element := range s.items {
+		fmt.Println("Number=", i, "Element=", element)
+	}
+}
+
+// Pop - pop element from Borda
+func (s *Borda) Pop() *GraphNode{
+	node := s.items[s.top]
+	s.items[s.top] = nil
+	s.top--
+
+	return node
+}
+
+// Peek - gives top element
+func (s *Borda) Peek() int {
+	return s.top
+}
+
+func (s *Borda) searchBorda(node *GraphNode) bool{
+	for _,i := range s.items {
+		if i == node {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Explorados) searchExplorados(node *GraphNode) bool{
+	for _,i := range s.items {
+		if i == node {
+			return true
+		}
+	}
+	return false
+}
+
+func DFS(g *Graph, inicio *GraphNode,  final string) int{	
+	e := &Explorados{
+		items: make([]*GraphNode, len(g.nodes)),
+	}
+
+	b := Init(len(g.nodes))
+	b.Push(inicio)
+	//fmt.Println("Inicio Borda - ")
+	//b.Print()
+	for {
+		if b.IsEmpty() {
+			fmt.Println("Erro, borda está vazia.")
+			return 0
+
+		}
+		node := b.Pop()
+		//fmt.Println("Borda - ")
+		//b.Print()
+		e.items = append(e.items, node)
+		for _,filho := range g.Neighbors(node){
+
+			if !(b.searchBorda(filho)) && !(e.searchExplorados(filho)){
+				if filho.id == final {
+					b.Push(filho)
+					//b.Print()
+					fmt.Println("Destino encontrado.") 
+					return 0 //printar o caminho percorrido
+				}
+				b.Push(filho)
+				//fmt.Println("Borda - ")
+				//b.Print()
+			}
+		}
+	}
+}
+
 
 func main() {
 
@@ -138,6 +278,9 @@ func main() {
 	fmt.Println(graph.Edges())
 
 	//imprime os vizinhos do nó 10
-	fmt.Println(graph.Neighbors(node1))
+	//fmt.Println(graph.Neighbors(node1))
+
+	//Busca em Profundidade
+	DFS(graph, node0, "BUCHAREST")
 	
 }
