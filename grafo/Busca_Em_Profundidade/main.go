@@ -195,6 +195,16 @@ func (s *Explorados) searchExplorados(node *GraphNode) bool{
 	return false
 }
 
+func (g *Graph) searchNode (node string) *GraphNode{
+	for _,i := range g.nodes {
+		if i.id == node {
+			return i
+		}
+	}
+
+	return nil
+}	
+
 
 func DFS(g *Graph, inicio *GraphNode,  final string) int{	
 	var soma int
@@ -293,7 +303,11 @@ func main() {
 	graph.AddEdge(node16, node18, 86)
 	graph.AddEdge(node17, node19, 87)
 
-	//Busca em Profundidade
-	DFS(graph, node0, Partida)
+	node:=graph.searchNode(Partida)
+	if node != nil {
+		//Busca em Profundidade
+		DFS(graph, node, Final)
+	}
+	
 	
 }
