@@ -51,6 +51,12 @@ func (g *Graph) AddEdge(n1, n2 *GraphNode, w int) {
 			node.edges[n2.id] = w
 		}
 	}
+
+	for _, node := range g.nodes{
+		if node.id == n2.id{
+			node.edges[n1.id] = w
+		}
+	}
 }
 
 // Neighbors : retorna os vizinhos do nó de entrada
@@ -150,6 +156,12 @@ func (s *Borda) Print() {
 	}
 }
 
+func (s *Explorados) PrintExp() {
+	for i, element := range s.items {
+		fmt.Println("Number=", i, "Element=", element)
+	}
+}
+
 // Pop - pop element from Borda
 func (s *Borda) Pop() *GraphNode{
 	node := s.items[s.top]
@@ -182,33 +194,49 @@ func (s *Explorados) searchExplorados(node *GraphNode) bool{
 	return false
 }
 
-func DFS(g *Graph, inicio *GraphNode,  final string) int{	
-	e := &Explorados{
-		items: make([]*GraphNode, len(g.nodes)),
+func (e *Explorados) indiceFinal() int {
+	var j int
+	for i, exp := range e.items{
+		if exp == nil {
+			j = i
+			break
+		}
 	}
+	return j-1	
+}
 
+func DFS(g *Graph, inicio *GraphNode,  final string) int{	
+	var soma int
+	e := &Explorados{
+		items: []*GraphNode{},
+	}
 	b := Init(len(g.nodes))
 	b.Push(inicio)
-	//fmt.Println("Inicio Borda - ")
-	//b.Print()
+	
 	for {
 		if b.IsEmpty() {
 			fmt.Println("Erro, borda está vazia.")
 			return 0
-
 		}
+		b.Print()
 		node := b.Pop()
-		//fmt.Println("Borda - ")
-		//b.Print()
+		fmt.Println("Borda - ")
+		
 		e.items = append(e.items, node)
+
+		if len(e.items)-1 != 0 {
+			soma += e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]
+			fmt.Println("Custo Somado - ", e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]) 
+		}
 		for _,filho := range g.Neighbors(node){
 
 			if !(b.searchBorda(filho)) && !(e.searchExplorados(filho)){
 				if filho.id == final {
 					b.Push(filho)
-					//b.Print()
-					fmt.Println("Destino encontrado.") 
-					return 0 //printar o caminho percorrido
+					soma += e.items[len(e.items)-1].edges[filho.id]
+					fmt.Println("Destino encontrado.")
+					fmt.Println("Custo - ", soma) 
+					return 0
 				}
 				b.Push(filho)
 				//fmt.Println("Borda - ")
@@ -218,6 +246,66 @@ func DFS(g *Graph, inicio *GraphNode,  final string) int{
 	}
 }
 
+func HeusticasTable() (heuristicas map[string]int) {
+	heuristicas map[string]int
+
+	heuristicas["ARAD"]= 366
+	heuristicas["ZERIND"]= 374
+	heuristicas["TIMISOARA"]= 329
+	heuristicas["SIBIU"]= 253
+	heuristicas["ORADEA"]= 380
+	heuristicas["LUGOJ"]= 244
+	heuristicas["FAGARAS"]= 176
+	heuristicas["RIMNICU VILCEA"]= 193
+	heuristicas["MEHADIA"]= 241
+	heuristicas["BUCHAREST"]= 0
+	heuristicas["PITEST"]= 100
+	heuristicas["CRAIOVA"]= 160
+	heuristicas["DROBETA"]= 242
+	heuristicas["GIURGIU"]= 77
+	heuristicas["URZICENI"]= 80
+	heuristicas["VASLUI"]= 199
+	heuristicas["HIRSOVA"]= 151
+	heuristicas["IASI"]= 226
+	heuristicas["EFORIE"]= 161
+	heuristicas["NEAMT"]= 234
+
+	return
+}
+
+func A_Star(g *Graph, inicio *GraphNode,  final string) int {
+	e := &Explorados{
+		items: []*GraphNode{},
+	}
+	var soma int
+
+	b := Init(len(g.nodes))
+	b.Enfileira(inicio)
+	for {
+		if b.IsEmpty() {
+			fmt.Println("Erro, borda está vazia.")
+			return 0
+		}
+		//b.Print()
+		node := b.Desenfileira()
+		//fmt.Println("Borda - ")
+		
+		e.items = append(e.items, node)
+		//fmt.Println (e.items)
+
+		if len(e.items)-1 != 0 {
+			//soma += e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]
+			//fmt.Println("Custo Somado - ", e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]) 
+		}
+		for _,filho := range g.Neighbors(node){
+			if !(b.searchBorda(filho)) && !(e.searchExplorados(filho)){
+				b.Push(filho)		
+			}else if !(b.searchBorda(filho)) && maiorCusto(filho) {
+				b.Substitui(filho)
+			}
+		}
+	}
+}
 
 func main() {
 
@@ -270,6 +358,8 @@ func main() {
 	graph.AddEdge(node15, node17, 92)
 	graph.AddEdge(node16, node18, 86)
 	graph.AddEdge(node17, node19, 87)
+
+	
 	
 	//imprime os nós do grafo
 	fmt.Println(graph.Nodes()) 
