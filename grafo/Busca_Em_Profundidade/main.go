@@ -236,8 +236,7 @@ func DFS(g *Graph, inicio *GraphNode,  final string) int{
 		e.items = append(e.items, node)
 
 		if len(e.items)-1 != 0 {
-			soma[node.id] = node.edges[retornaPai(pai, node.id)]+soma[retornaPai(pai, node.id)]//usar pai
-			fmt.Println("Pai de " + node.id + " - " + retornaPai(pai, node.id))
+			soma[node.id] = node.edges[retornaPai(pai, node.id)]+soma[retornaPai(pai, node.id)]
 		}else{
 			soma[node.id]=0
 		}
@@ -248,7 +247,7 @@ func DFS(g *Graph, inicio *GraphNode,  final string) int{
 				if filho.id == final {
 					b.Push(filho)
 					soma[filho.id] = filho.edges[retornaPai(pai, filho.id)]+soma[retornaPai(pai, filho.id)]
-					fmt.Println("Destino encontrado.")
+					fmt.Println("Destino encontrado")
 					fmt.Println("Custo - ", soma[filho.id]) 
 					return 0
 				}
