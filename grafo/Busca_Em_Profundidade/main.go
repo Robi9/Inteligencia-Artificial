@@ -203,11 +203,23 @@ func (g *Graph) searchNode (node string) *GraphNode{
 	}
 
 	return nil
-}	
+}
+
+func retornaPai(pai map[string][]*GraphNode, no string) string {
+	for nome,i := range pai {
+		for _,j := range i{
+			if j.id == no {
+				return nome
+			}
+		}	
+	}
+	return ""
+}
 
 
 func DFS(g *Graph, inicio *GraphNode,  final string) int{	
-	var soma int
+	soma := make(map[string]int)
+	pai := make(map[string][]*GraphNode)
 	e := &Explorados{
 		items: []*GraphNode{},
 	}
@@ -220,33 +232,31 @@ func DFS(g *Graph, inicio *GraphNode,  final string) int{
 			return 0
 		}
 		//b.Print()
-		node := b.Pop()
-		//fmt.Println("Borda - ")
-		
+		node := b.Pop()		
 		e.items = append(e.items, node)
 
 		if len(e.items)-1 != 0 {
-			soma += e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]
-			//fmt.Println("Custo Somado - ", e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]) 
+			soma[node.id] = node.edges[retornaPai(pai, node.id)]+soma[retornaPai(pai, node.id)]//usar pai
+			fmt.Println("Pai de " + node.id + " - " + retornaPai(pai, node.id))
+		}else{
+			soma[node.id]=0
 		}
-		for _,filho := range g.Neighbors(node){
 
+		for _,filho := range g.Neighbors(node){
+			pai[node.id] = append(pai[node.id], filho)
 			if !(b.searchBorda(filho)) && !(e.searchExplorados(filho)){
 				if filho.id == final {
 					b.Push(filho)
-					soma += e.items[len(e.items)-1].edges[filho.id]
+					soma[filho.id] = filho.edges[retornaPai(pai, filho.id)]+soma[retornaPai(pai, filho.id)]
 					fmt.Println("Destino encontrado.")
-					fmt.Println("Custo - ", soma) 
+					fmt.Println("Custo - ", soma[filho.id]) 
 					return 0
 				}
 				b.Push(filho)
-				//fmt.Println("Borda - ")
-				//b.Print()
 			}
 		}
 	}
 }
-
 
 func main() {
 

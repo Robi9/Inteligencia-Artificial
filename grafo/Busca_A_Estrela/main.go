@@ -195,6 +195,15 @@ func (s *Explorados) searchExplorados(node *GraphNode) bool{
 	return false
 }
 
+func (g *Graph) searchNode (node string) *GraphNode{
+	for _,i := range g.nodes {
+		if i.id == node {
+			return i
+		}
+	}
+
+	return nil
+}	
 
 func HeusticasTable() (heuristicas map[string]int) {
 	//var heuristicas map[string]int
@@ -223,7 +232,7 @@ func HeusticasTable() (heuristicas map[string]int) {
 	return
 }
 
-/*func A_Star(g *Graph, inicio *GraphNode,  final string) int {
+func A_Star(g *Graph, inicio *GraphNode,  final string) int {
 	e := &Explorados{
 		items: []*GraphNode{},
 	}
@@ -255,11 +264,12 @@ func HeusticasTable() (heuristicas map[string]int) {
 			}
 		}
 	}
-}*/
+}
 
 func main() {
 
 	Partida := os.Args[1] 
+	Final := os.Args[2]
 	
 	//GRAFO DA ROMENIA
 
@@ -311,17 +321,11 @@ func main() {
 	graph.AddEdge(node16, node18, 86)
 	graph.AddEdge(node17, node19, 87)
 
+	node:=graph.searchNode(Partida)
+	if node != nil {
+		//Busca em Profundidade
+		A_Star(graph, node, Final)
+	}
 	
-	
-	//imprime os nós do grafo
-	fmt.Println(graph.Nodes()) 
-
-	//imprime as arestas e seus respectivos pesos
-	fmt.Println(graph.Edges())
-
-	//imprime os vizinhos do nó 10
-	//fmt.Println(graph.Neighbors(node1))
-
-	//Busca A Estrela
 	
 }
