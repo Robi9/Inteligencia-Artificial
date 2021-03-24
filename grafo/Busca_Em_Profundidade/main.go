@@ -241,6 +241,7 @@ func DFS(g *Graph, inicio *GraphNode,  final string) int{
 func main() {
 
 	Partida := os.Args[1] 
+	Final := os.Args[2]
 	
 	//GRAFO DA ROMENIA
 
