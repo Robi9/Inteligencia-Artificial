@@ -292,17 +292,6 @@ func main() {
 	graph.AddEdge(node16, node18, 86)
 	graph.AddEdge(node17, node19, 87)
 
-	
-	
-	//imprime os nós do grafo
-	fmt.Println(graph.Nodes()) 
-
-	//imprime as arestas e seus respectivos pesos
-	fmt.Println(graph.Edges())
-
-	//imprime os vizinhos do nó 10
-	//fmt.Println(graph.Neighbors(node1))
-
 	//Busca em Profundidade
 	DFS(graph, node0, Partida)
 	
