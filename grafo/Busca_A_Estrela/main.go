@@ -142,15 +142,15 @@ func (s *Borda) IsEmpty() bool {
 	return false
 }
 
-func retornaPai(pai map[string][]*GraphNode, no string) string {
-	for nome,i := range pai {
+func retornaPai(pai map[*GraphNode][]*GraphNode, no *GraphNode) *GraphNode {
+	for node,i := range pai {
 		for _,j := range i{
-			if j.id == no {
-				return nome
+			if j.id == no.id {
+				return node
 			}
 		}	
 	}
-	return ""
+	return nil
 }
 
 // Push - pushes element into Borda
@@ -168,7 +168,7 @@ func (s *Borda) Enfileira(element *GraphNode, custo int) {
 // Print - prints element from Borda
 func (s *Borda) Print() {
 	for i, element := range s.items {
-		fmt.Println("Number=", i, "Element=", element)
+		fmt.Println("Number=", i, "Element=", element, "Custo=",s.custos[element])
 	}
 }
 
@@ -185,25 +185,32 @@ func (s *Borda) Desenfileira() (int, *GraphNode){
 		id:    "",
 		edges: make(map[string]int),
 	}
+	//fmt.Println("oi1")
 	//var n *GraphNode
-	for _, element := range s.items {
-		if s.custos[element] == 0 {
-			
-		}
-		if s.custos[element] <= c {
+	for i, element := range s.items {
+		if element == nil {
+			break
+		}else if i == 0{
+			//if s.custos[element] <= c {
+				//fmt.Println("oi1")
+				c = s.custos[element]
+				n = element
+			//}
+		}else if s.custos[element] <= c && i != 0{
 			c = s.custos[element]
 			n = element
-		}
+		}	
 	}
-
 	
-	for _, element := range s.items {
-		fmt.Println(element.id)
+	for i, element := range s.items {
+		//fmt.Println(element.id)
 		if element.id == n.id {
+			aux := s.items[s.top]
 			s.items[s.top] = nil
+			s.items[i]=aux
 			delete(s.custos, element)
 			s.top--
-			//s.Print()
+			
 			return c, element
 		}
 	}
@@ -217,7 +224,7 @@ func (s *Borda) Peek() int {
 
 func (s *Borda) searchBorda(node *GraphNode, custo int) bool{
 	for _,i := range s.items {
-		if i == node && s.custos[node] < custo{
+		if i == node && s.custos[i] > custo{
 			return true
 		}
 	}
@@ -243,17 +250,28 @@ func (g *Graph) searchNode (node string) *GraphNode{
 	return nil
 }
 func (s *Borda) Substitui(node *GraphNode, custo int) {
-	for j,i := range s.items {
-		if i == node {
-			s.items[j]=node
-			s.custos[node]=custo
+	for _,i := range s.items {
+		if i.id == node.id && s.custos[i] > custo {			
+			s.custos[i]=custo
+			break
+
+		}else{
+			break
 		}
 	}
 }
+func (s *Borda) searchB(node *GraphNode) bool{
+	for _,i := range s.items {
+		if i == node {
+			return true
+		}
+	}
+	return false
+}
 
 
-func HeusticasTable() (heuristicas map[string]int) {
-	//var heuristicas map[string]int
+func HeuristicasTable() ( map[string]int) {
+	heuristicas := make(map[string]int)
 
 	heuristicas["ARAD"]= 366
 	heuristicas["ZERIND"]= 374
@@ -276,51 +294,60 @@ func HeusticasTable() (heuristicas map[string]int) {
 	heuristicas["EFORIE"]= 161
 	heuristicas["NEAMT"]= 234
 
-	return
+	return heuristicas
 }
 
 func A_Star(g *Graph, inicio *GraphNode,  final string) int {
+	heuristica:=make(map[string]int)
+	heuristica = HeuristicasTable()
+	custoNo:=0
+	custoCaminho:=make(map[string]int)
 	soma := make(map[string]int)
-	pai := make(map[string][]*GraphNode)
+	pai := make(map[*GraphNode][]*GraphNode)
 	e := &Explorados{
 		items: []*GraphNode{},
 	}
-	b := Init(len(g.nodes))
-	b.Enfileira(inicio, 0)
 	
+	b := Init(len(g.nodes))
+	b.Enfileira(inicio, 0+heuristica[inicio.id])	
 	for {
 		if b.IsEmpty() {
 			fmt.Println("Erro, borda está vazia.")
 			return 0
 		}
+		b.Print()
 		//b.Print()
 		custo, node := b.Desenfileira()
 		fmt.Println(node.id)
 		soma[node.id] = custo
 		if node.id == final {
 			fmt.Println("Destino encontrado")
-			fmt.Println("Custo - ", soma[node.id]) 
+			fmt.Println("Custo - ", soma[node.id])
 			return 0		
 		}
-
 		e.items = append(e.items, node)
 
-		/*if len(e.items)-1 != 0 {
-			soma[node.id] = custo //node.edges[retornaPai(pai, node.id)]+soma[retornaPai(pai, node.id)]
+		if len(e.items)-1 != 0{
+			custoCaminho[node.id] = node.edges[retornaPai(pai, node).id]+custoCaminho[retornaPai(pai, node).id]
 		}else{
-			soma[node.id]=custo
-		}*/
+			custoCaminho[node.id]=0
+		}
 
 		for _,filho := range g.Neighbors(node){
-			pai[node.id] = append(pai[node.id], filho)
-			if !(b.searchBorda(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)])) && !(e.searchExplorados(filho)){
-				b.Enfileira(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)])
-			}else if b.searchBorda(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)]){
-				b.Substitui(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)])
+			pai[node] = append(pai[node], filho)
+			if !(e.searchExplorados(filho)) && !(b.searchB(filho)){
+				custoNo=custoCaminho[node.id]+filho.edges[node.id]+heuristica[filho.id]
+				fmt.Println("Custo de " + filho.id + " - ", custoNo)
+				//if !(b.searchB(filho)) && !(e.searchExplorados(filho)){
+				b.Enfileira(filho, custoNo)
+			}else if b.searchBorda(filho, custoCaminho[node.id]+filho.edges[node.id]+heuristica[filho.id]){
+				custoNo = custoCaminho[node.id]+filho.edges[node.id]+heuristica[filho.id]
+				b.Substitui(filho, custoNo)	
+				b.Print()		
 			}
 		}
 	}
-}
+}	
 
 func main() {
 
@@ -380,9 +407,9 @@ func main() {
 	node:=graph.searchNode(Partida)
 	if node != nil {
 		//Busca em Profundidade
+		fmt.Println("oi1")
 		A_Star(graph, node, Final)
 	}
-	
 	
 }
 
