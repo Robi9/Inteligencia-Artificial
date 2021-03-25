@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"os"
+	"strconv"
 )
 
 // Graph : representa um grafo
@@ -24,12 +24,13 @@ func New() *Graph {
 	}
 }
 
+//Representa a Borda
 type Borda struct {
 	items []*GraphNode
 	top   int
 }
 
-
+//Representa o Explorados
 type Explorados struct{
 	items []*GraphNode
 }
@@ -107,7 +108,7 @@ func (g *Graph) Edges() [][3]string {
 	return edges
 }
 
-// Init - Borda initialization
+// Init: Inicializa a Borda
 func Init(size int) *Borda {
 	s := &Borda{
 		items: make([]*GraphNode, size),
@@ -116,7 +117,7 @@ func Init(size int) *Borda {
 	return s
 }
 
-// IsInitialized - checks Borda initialized or not
+// IsInitialized: verifica se a Borda está inicializada
 func (s *Borda) IsInitialized() bool {
 	if cap(s.items) == 0 {
 		return true
@@ -124,7 +125,7 @@ func (s *Borda) IsInitialized() bool {
 	return false
 }
 
-// IsFull - checks if Borda is full
+// IsFull: verifica se a borda está cheia
 func (s *Borda) IsFull() bool {
 	if (cap(s.items) - 1) == s.top {
 		return true
@@ -132,7 +133,7 @@ func (s *Borda) IsFull() bool {
 	return false
 }
 
-// IsEmpty - checks if Borda is empty
+// IsEmpty: Verifica se a Borda está vazia
 func (s *Borda) IsEmpty() bool {
 	if -1 == s.top {
 		return true
@@ -140,7 +141,7 @@ func (s *Borda) IsEmpty() bool {
 	return false
 }
 
-// Push - pushes element into Borda
+// Push: Dá um Push na Borda
 func (s *Borda) Push(element *GraphNode) {
 	s.top++
 	if s.top == -1 {
@@ -150,20 +151,21 @@ func (s *Borda) Push(element *GraphNode) {
 	}
 }
 
-// Print - prints element from Borda
+// Print: printa elementos da Borda
 func (s *Borda) Print() {
 	for i, element := range s.items {
 		fmt.Println("Number=", i, "Element=", element)
 	}
 }
 
+//PrintExp: Printa os Explorados
 func (s *Explorados) PrintExp() {
 	for i, element := range s.items {
 		fmt.Println("Number=", i, "Element=", element)
 	}
 }
 
-// Pop - pop element from Borda
+// Pop: Dá um Pop na Borda
 func (s *Borda) Pop() *GraphNode{
 	node := s.items[s.top]
 	s.items[s.top] = nil
@@ -172,11 +174,7 @@ func (s *Borda) Pop() *GraphNode{
 	return node
 }
 
-// Peek - gives top element
-func (s *Borda) Peek() int {
-	return s.top
-}
-
+//searchBorda: Verifica se um nó está na Borda
 func (s *Borda) searchBorda(node *GraphNode) bool{
 	for _,i := range s.items {
 		if i == node {
@@ -186,6 +184,7 @@ func (s *Borda) searchBorda(node *GraphNode) bool{
 	return false
 }
 
+//searchExplorados: Verifica se um nó está no Explorados
 func (s *Explorados) searchExplorados(node *GraphNode) bool{
 	for _,i := range s.items {
 		if i == node {
@@ -195,6 +194,7 @@ func (s *Explorados) searchExplorados(node *GraphNode) bool{
 	return false
 }
 
+//searchNode: Procura um nó no Grafo e o retorna
 func (g *Graph) searchNode (node string) *GraphNode{
 	for _,i := range g.nodes {
 		if i.id == node {
@@ -205,6 +205,8 @@ func (g *Graph) searchNode (node string) *GraphNode{
 	return nil
 }
 
+//retornaPai: Retorna nó que antecedeu determinado nó na busca
+//OBS: Usamos o nome pai para facilitar o uso, mas não utilizamos pai na estrutura do grafo.
 func retornaPai(pai map[string][]*GraphNode, no string) string {
 	for nome,i := range pai {
 		for _,j := range i{
@@ -216,7 +218,7 @@ func retornaPai(pai map[string][]*GraphNode, no string) string {
 	return ""
 }
 
-
+//DFS: Realiza a Busca Sem Informação - Busca em Profundidade
 func DFS(g *Graph, inicio *GraphNode,  final string) int{	
 	soma := make(map[string]int)
 	pai := make(map[string][]*GraphNode)
@@ -231,7 +233,6 @@ func DFS(g *Graph, inicio *GraphNode,  final string) int{
 			fmt.Println("Erro, borda está vazia.")
 			return 0
 		}
-		//b.Print()
 		node := b.Pop()		
 		e.items = append(e.items, node)
 
@@ -312,6 +313,7 @@ func main() {
 	graph.AddEdge(node16, node18, 86)
 	graph.AddEdge(node17, node19, 87)
 
+	//Procura pelo nó de partida no Grafo
 	node:=graph.searchNode(Partida)
 	if node != nil {
 		//Busca em Profundidade

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"os"
+	"strconv"
 )
 
 // Graph : representa um grafo
@@ -23,14 +23,14 @@ func New() *Graph {
 		nodes: []*GraphNode{},
 	}
 }
-
+//Representa a Borda
 type Borda struct {
 	items []*GraphNode
 	custos map[*GraphNode]int
 	top   int
 }
 
-
+//Representa o Explorados
 type Explorados struct{
 	items []*GraphNode
 }
@@ -108,7 +108,7 @@ func (g *Graph) Edges() [][3]string {
 	return edges
 }
 
-// Init - Borda initialization
+// Init: Inicializa a Borda
 func Init(size int) *Borda {
 	s := &Borda{
 		items: make([]*GraphNode, size),
@@ -118,7 +118,7 @@ func Init(size int) *Borda {
 	return s
 }
 
-// IsInitialized - checks Borda initialized or not
+// IsInitialized: verifica se a Borda está inicializada
 func (s *Borda) IsInitialized() bool {
 	if cap(s.items) == 0 {
 		return true
@@ -126,7 +126,7 @@ func (s *Borda) IsInitialized() bool {
 	return false
 }
 
-// IsFull - checks if Borda is full
+// IsFull: verifica se a borda está cheia
 func (s *Borda) IsFull() bool {
 	if (cap(s.items) - 1) == s.top {
 		return true
@@ -134,14 +134,15 @@ func (s *Borda) IsFull() bool {
 	return false
 }
 
-// IsEmpty - checks if Borda is empty
+// IsEmpty: Verifica se a Borda está vazia
 func (s *Borda) IsEmpty() bool {
 	if -1 == s.top {
 		return true
 	}
 	return false
 }
-
+//retornaPai: Retorna nó que antecedeu determinado nó na busca
+//OBS: Usamos o nome pai para facilitar o uso, mas não utilizamos pai na estrutura do grafo.
 func retornaPai(pai map[*GraphNode][]*GraphNode, no *GraphNode) *GraphNode {
 	for node,i := range pai {
 		for _,j := range i{
@@ -153,7 +154,7 @@ func retornaPai(pai map[*GraphNode][]*GraphNode, no *GraphNode) *GraphNode {
 	return nil
 }
 
-// Push - pushes element into Borda
+// Enfileira: Enfileira um nó na Borda com seu custo
 func (s *Borda) Enfileira(element *GraphNode, custo int) {
 	s.top++
 	if s.top == -1 {
@@ -165,37 +166,32 @@ func (s *Borda) Enfileira(element *GraphNode, custo int) {
 	}
 }
 
-// Print - prints element from Borda
+// Print: printa elementos da Borda
 func (s *Borda) Print() {
 	for i, element := range s.items {
 		fmt.Println("Number=", i, "Element=", element, "Custo=",s.custos[element])
 	}
 }
-
+//PrintExp: Printa os Explorados
 func (s *Explorados) PrintExp() {
 	for i, element := range s.items {
 		fmt.Println("Number=", i, "Element=", element)
 	}
 }
 
-// Pop - pop element from Borda
+// Desenfileira: Desenfileira um elemento da Borda de acordo com seu custo
 func (s *Borda) Desenfileira() (int, *GraphNode){
 	c := 0
 	n := &GraphNode{
 		id:    "",
 		edges: make(map[string]int),
 	}
-	//fmt.Println("oi1")
-	//var n *GraphNode
 	for i, element := range s.items {
 		if element == nil {
 			break
 		}else if i == 0{
-			//if s.custos[element] <= c {
-				//fmt.Println("oi1")
-				c = s.custos[element]
-				n = element
-			//}
+			c = s.custos[element]
+			n = element
 		}else if s.custos[element] <= c && i != 0{
 			c = s.custos[element]
 			n = element
@@ -203,7 +199,6 @@ func (s *Borda) Desenfileira() (int, *GraphNode){
 	}
 	
 	for i, element := range s.items {
-		//fmt.Println(element.id)
 		if element.id == n.id {
 			aux := s.items[s.top]
 			s.items[s.top] = nil
@@ -217,11 +212,7 @@ func (s *Borda) Desenfileira() (int, *GraphNode){
 	return 0, nil
 }
 
-// Peek - gives top element
-func (s *Borda) Peek() int {
-	return s.top
-}
-
+//searchBorda: Retorna se determinado nó está na Borda com custo maior
 func (s *Borda) searchBorda(node *GraphNode, custo int) bool{
 	for _,i := range s.items {
 		if i == node && s.custos[i] > custo{
@@ -231,6 +222,7 @@ func (s *Borda) searchBorda(node *GraphNode, custo int) bool{
 	return false
 }
 
+//searchExplorados: Verifica se um nó está no Explorados
 func (s *Explorados) searchExplorados(node *GraphNode) bool{
 	for _,i := range s.items {
 		if i == node {
@@ -240,6 +232,7 @@ func (s *Explorados) searchExplorados(node *GraphNode) bool{
 	return false
 }
 
+//searchNode: Procura um nó no Grafo e o retorna
 func (g *Graph) searchNode (node string) *GraphNode{
 	for _,i := range g.nodes {
 		if i.id == node {
@@ -249,17 +242,8 @@ func (g *Graph) searchNode (node string) *GraphNode{
 
 	return nil
 }
-func (s *Borda) Substitui(node *GraphNode, custo int) {
-	for _,i := range s.items {
-		if i.id == node.id && s.custos[i] > custo {			
-			s.custos[i]=custo
-			break
 
-		}else{
-			break
-		}
-	}
-}
+//searchB: Verifica se um nó está na Borda
 func (s *Borda) searchB(node *GraphNode) bool{
 	for _,i := range s.items {
 		if i == node {
@@ -269,8 +253,8 @@ func (s *Borda) searchB(node *GraphNode) bool{
 	return false
 }
 
-
-func HeuristicasTable() ( map[string]int) {
+//HeuristicasTable: Retorna um map com os valores de heuristicas
+func HeuristicasTable() (map[string]int) {
 	heuristicas := make(map[string]int)
 
 	heuristicas["ARAD"]= 366
@@ -297,6 +281,7 @@ func HeuristicasTable() ( map[string]int) {
 	return heuristicas
 }
 
+//Realiza a Busca com Informação A*
 func A_Star(g *Graph, inicio *GraphNode,  final string) int {
 	heuristica:=make(map[string]int)
 	heuristica = HeuristicasTable()
@@ -315,10 +300,7 @@ func A_Star(g *Graph, inicio *GraphNode,  final string) int {
 			fmt.Println("Erro, borda está vazia.")
 			return 0
 		}
-		b.Print()
-		//b.Print()
 		custo, node := b.Desenfileira()
-		fmt.Println(node.id)
 		soma[node.id] = custo
 		if node.id == final {
 			fmt.Println("Destino encontrado")
@@ -337,13 +319,11 @@ func A_Star(g *Graph, inicio *GraphNode,  final string) int {
 			pai[node] = append(pai[node], filho)
 			if !(e.searchExplorados(filho)) && !(b.searchB(filho)){
 				custoNo=custoCaminho[node.id]+filho.edges[node.id]+heuristica[filho.id]
-				fmt.Println("Custo de " + filho.id + " - ", custoNo)
-				//if !(b.searchB(filho)) && !(e.searchExplorados(filho)){
 				b.Enfileira(filho, custoNo)
 			}else if b.searchBorda(filho, custoCaminho[node.id]+filho.edges[node.id]+heuristica[filho.id]){
 				custoNo = custoCaminho[node.id]+filho.edges[node.id]+heuristica[filho.id]
-				b.Substitui(filho, custoNo)	
-				b.Print()		
+				b.custos[filho]=custoNo
+						
 			}
 		}
 	}
@@ -404,14 +384,10 @@ func main() {
 	graph.AddEdge(node16, node18, 86)
 	graph.AddEdge(node17, node19, 87)
 
+	//Procura pelo nó de partida no Grafo
 	node:=graph.searchNode(Partida)
 	if node != nil {
-		//Busca em Profundidade
-		fmt.Println("oi1")
+		//Busca A*
 		A_Star(graph, node, Final)
-	}
-	
+	}	
 }
-
-/*
-*/
