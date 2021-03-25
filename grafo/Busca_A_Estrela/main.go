@@ -26,6 +26,7 @@ func New() *Graph {
 
 type Borda struct {
 	items []*GraphNode
+	custos map[*GraphNode]int
 	top   int
 }
 
@@ -111,6 +112,7 @@ func (g *Graph) Edges() [][3]string {
 func Init(size int) *Borda {
 	s := &Borda{
 		items: make([]*GraphNode, size),
+		custos: make(map[*GraphNode]int),
 		top: -1,
 	}
 	return s
@@ -140,13 +142,26 @@ func (s *Borda) IsEmpty() bool {
 	return false
 }
 
+func retornaPai(pai map[string][]*GraphNode, no string) string {
+	for nome,i := range pai {
+		for _,j := range i{
+			if j.id == no {
+				return nome
+			}
+		}	
+	}
+	return ""
+}
+
 // Push - pushes element into Borda
-func (s *Borda) Push(element *GraphNode) {
+func (s *Borda) Enfileira(element *GraphNode, custo int) {
 	s.top++
 	if s.top == -1 {
 		s.items[0] = element
+		s.custos[element] = custo
 	} else {
 		s.items[s.top] = element
+		s.custos[element] = custo
 	}
 }
 
@@ -164,12 +179,35 @@ func (s *Explorados) PrintExp() {
 }
 
 // Pop - pop element from Borda
-func (s *Borda) Pop() *GraphNode{
-	node := s.items[s.top]
-	s.items[s.top] = nil
-	s.top--
+func (s *Borda) Desenfileira() (int, *GraphNode){
+	c := 0
+	n := &GraphNode{
+		id:    "",
+		edges: make(map[string]int),
+	}
+	//var n *GraphNode
+	for _, element := range s.items {
+		if s.custos[element] == 0 {
+			
+		}
+		if s.custos[element] <= c {
+			c = s.custos[element]
+			n = element
+		}
+	}
 
-	return node
+	
+	for _, element := range s.items {
+		fmt.Println(element.id)
+		if element.id == n.id {
+			s.items[s.top] = nil
+			delete(s.custos, element)
+			s.top--
+			//s.Print()
+			return c, element
+		}
+	}
+	return 0, nil
 }
 
 // Peek - gives top element
@@ -177,9 +215,9 @@ func (s *Borda) Peek() int {
 	return s.top
 }
 
-func (s *Borda) searchBorda(node *GraphNode) bool{
+func (s *Borda) searchBorda(node *GraphNode, custo int) bool{
 	for _,i := range s.items {
-		if i == node {
+		if i == node && s.custos[node] < custo{
 			return true
 		}
 	}
@@ -203,7 +241,16 @@ func (g *Graph) searchNode (node string) *GraphNode{
 	}
 
 	return nil
-}	
+}
+func (s *Borda) Substitui(node *GraphNode, custo int) {
+	for j,i := range s.items {
+		if i == node {
+			s.items[j]=node
+			s.custos[node]=custo
+		}
+	}
+}
+
 
 func HeusticasTable() (heuristicas map[string]int) {
 	//var heuristicas map[string]int
@@ -233,34 +280,43 @@ func HeusticasTable() (heuristicas map[string]int) {
 }
 
 func A_Star(g *Graph, inicio *GraphNode,  final string) int {
+	soma := make(map[string]int)
+	pai := make(map[string][]*GraphNode)
 	e := &Explorados{
 		items: []*GraphNode{},
 	}
-	var soma int
-
 	b := Init(len(g.nodes))
-	b.Enfileira(inicio)
+	b.Enfileira(inicio, 0)
+	
 	for {
 		if b.IsEmpty() {
 			fmt.Println("Erro, borda está vazia.")
 			return 0
 		}
 		//b.Print()
-		node := b.Desenfileira()
-		//fmt.Println("Borda - ")
-		
-		e.items = append(e.items, node)
-		//fmt.Println (e.items)
-
-		if len(e.items)-1 != 0 {
-			//soma += e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]
-			//fmt.Println("Custo Somado - ", e.items[len(e.items)-1].edges[e.items[len(e.items)-2].id]) 
+		custo, node := b.Desenfileira()
+		fmt.Println(node.id)
+		soma[node.id] = custo
+		if node.id == final {
+			fmt.Println("Destino encontrado")
+			fmt.Println("Custo - ", soma[node.id]) 
+			return 0		
 		}
+
+		e.items = append(e.items, node)
+
+		/*if len(e.items)-1 != 0 {
+			soma[node.id] = custo //node.edges[retornaPai(pai, node.id)]+soma[retornaPai(pai, node.id)]
+		}else{
+			soma[node.id]=custo
+		}*/
+
 		for _,filho := range g.Neighbors(node){
-			if !(b.searchBorda(filho)) && !(e.searchExplorados(filho)){
-				b.Push(filho)		
-			}else if !(b.searchBorda(filho)) && maiorCusto(filho) {
-				b.Substitui(filho)
+			pai[node.id] = append(pai[node.id], filho)
+			if !(b.searchBorda(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)])) && !(e.searchExplorados(filho)){
+				b.Enfileira(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)])
+			}else if b.searchBorda(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)]){
+				b.Substitui(filho, soma[retornaPai(pai, filho.id)]+filho.edges[retornaPai(pai, node.id)])
 			}
 		}
 	}
@@ -329,3 +385,6 @@ func main() {
 	
 	
 }
+
+/*
+*/
